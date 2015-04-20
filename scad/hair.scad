@@ -1,3 +1,5 @@
+// Single hair.
+
 // Precision for rounded stuff.
 $fs = 1;
 
@@ -27,9 +29,9 @@ LED_OFFSET = 2;
 
 // Rounded rectangle base.
 module Structure() {
-  cube(size=[HAIR_WIDTH, HAIR_LENGTH - HAIR_WIDTH, HAIR_DEPTH]);
+  cube(size=[HAIR_WIDTH, HAIR_LENGTH - HAIR_WIDTH / 2, HAIR_DEPTH]);
   // Rounded end.
-  translate([HAIR_WIDTH / 2, HAIR_LENGTH - HAIR_WIDTH, 0])
+  translate([HAIR_WIDTH / 2, HAIR_LENGTH - HAIR_WIDTH / 2, 0])
     cylinder(h=HAIR_DEPTH, r=HAIR_WIDTH/2);
 }
 
