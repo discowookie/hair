@@ -1,2 +1,3 @@
-# hair
-Experiments in wookie hair design
+# Wookie Hair
+
+This contains experiments in wookie hair design.
