@@ -34,11 +34,24 @@ LED_OFFSET = 2;
 WOOKIE_BROWN = [0.52, 0.35, 0.24];
 
 // Rounded rectangle base.
-module Structure() {
+module DivingBoard() {
   cube(size=[HAIR_WIDTH, HAIR_LENGTH - HAIR_WIDTH / 2, HAIR_DEPTH]);
   // Rounded end.
   translate([HAIR_WIDTH / 2, HAIR_LENGTH - HAIR_WIDTH / 2, 0])
     cylinder(h=HAIR_DEPTH, r=HAIR_WIDTH/2);
+}
+
+module Groove(angle = 45, depth = 1, width = HAIR_WIDTH * 2) {
+  length = 2 * depth / tan(angle);
+  big = max(HAIR_LENGTH, HAIR_WIDTH, HAIR_DEPTH) * 2;
+  inverseAngle = 90 - angle;
+  intersection() {
+    cube(size=[width, length, depth]);
+    translate([0, length / 2, 0]) rotate([inverseAngle, 0, 0])
+      translate([0, 0, -big / 2]) cube(big);
+    translate([0, length / 2, 0]) rotate([-inverseAngle, 0, 0])
+      translate([0, -big, -big / 2]) cube(big);
+  }
 }
 
 // Produces a shape resembling a tuft of hair, using two circular edges and one
@@ -68,6 +81,18 @@ module ConvexTuft(length = 60, height = 5, tipSpan = 30, tipDirection = 10) {
   }
 }
 
+module GroovedTuft(length = 60, height = 5, tipSpan = 30, tipDirection = 10) {
+  grooveSpacing = 0.50;
+  grooveDepth = 0.25;
+  grooveSink = grooveDepth * 0.9;  // fudge to avoid epsilon overhang
+  difference() {
+    ConvexTuft(length = length, height = height, tipSpan = tipSpan, 
+               tipDirection = tipDirection);
+    for (i = [ 0 : grooveSpacing : length ])
+      translate([0, i, height - grooveSink]) Groove(depth = grooveDepth);
+  }
+}
+
 // LED shape, used for subtracting.
 module Led() {
   // Go a small delta below the surface to make difference work cleanly.
@@ -85,10 +110,19 @@ module Pillars() {
   }
 }
 
+module Tufts() {
+  // TODO(cody): automatically center tufts rather than manual adjustment.
+  translate([-1, 0, 0])
+    GroovedTuft(length = 70, height = 2, tipSpan = 28, tipDirection = -5);
+  GroovedTuft(length = 60, height = 4, tipSpan = 30, tipDirection = 8);
+  GroovedTuft(length = 55, height = 6, tipSpan = 25, tipDirection = -5);
+  GroovedTuft(length = 45, height = 8, tipSpan = 35, tipDirection = -12);
+}
+
 // Draws a basic hair with pillars and LED hole.
 module HairV0() {
   difference() {
-    Structure();
+    DivingBoard();
     Led();
   }
   Pillars();
@@ -98,13 +132,8 @@ module HairV0() {
 module HairV1() {
   difference() {
     color(WOOKIE_BROWN, 1) {
-        // TODO(cody): automatically center tufts rather than manual adjustment.
-        translate([-1, 0, 0])
-          ConvexTuft(length = 70, height = 2, tipSpan = 28, tipDirection = -5);
-        ConvexTuft(length = 60, height = 4, tipSpan = 30, tipDirection = 8);
-        ConvexTuft(length = 55, height = 6, tipSpan = 25, tipDirection = -5);
-        ConvexTuft(length = 45, height = 8, tipSpan = 35, tipDirection = -12);
-        Pillars();
+      Tufts();
+      Pillars();
     }
     Led();
   }
