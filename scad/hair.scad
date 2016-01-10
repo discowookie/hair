@@ -120,7 +120,7 @@ module Tufts() {
 }
 
 // Draws a basic hair with pillars and LED hole.
-module HairV0() {
+module SimpleHair() {
   difference() {
     DivingBoard();
     Led();
@@ -129,7 +129,7 @@ module HairV0() {
 }
 
 // Draws four overlapping tufts.
-module HairV1() {
+module TuftyHair() {
   difference() {
     color(WOOKIE_BROWN, 1) {
       Tufts();
@@ -139,4 +139,4 @@ module HairV1() {
   }
 }
 
-HairV1();
+TuftyHair();
