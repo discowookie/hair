@@ -33,6 +33,11 @@ LED_OFFSET = 2;
 // Color to use for demo renderings.
 WOOKIE_BROWN = [0.52, 0.35, 0.24];
 
+// Used to avoid near-zero-width facets.
+FUDGE = 0.01;
+
+function even(x) = x % 2 == 0;
+
 // Rounded rectangle base.
 module DivingBoard() {
   cube(size=[HAIR_WIDTH, HAIR_LENGTH - HAIR_WIDTH / 2, HAIR_DEPTH]);
@@ -96,7 +101,7 @@ module GroovedTuft(length = 60, height = 5, tipSpan = 30, tipDirection = 10) {
 // LED shape, used for subtracting.
 module Led() {
   // Go a small delta below the surface to make difference work cleanly.
-  translate([(HAIR_WIDTH - LED_WIDTH) / 2, LED_OFFSET, -0.1])
+  translate([(HAIR_WIDTH - LED_WIDTH) / 2, LED_OFFSET, -FUDGE])
     cube(size=[LED_WIDTH, LED_LENGTH, LED_DEPTH + 0.1]);
 }
 
@@ -119,11 +124,42 @@ module Tufts() {
   GroovedTuft(length = 45, height = 8, tipSpan = 35, tipDirection = -12);
 }
 
+// Shape removed from the outward surface of the hair, to scatter light.
+module Divot(size) {
+  difference() {
+    cylinder(h = size, r1 = 0, r2 = size, $fs = 0.1);
+    rotate([0, 0, 180])
+      translate([-size - FUDGE, 0, -FUDGE])
+        cube(size = 2 * (size + FUDGE));
+  }
+}
+
+module DivotRow(size, width, spacing) {
+  for (i = [ 0 : spacing : width ])
+    translate([i, 0, 0])
+      Divot(size);
+}
+
+// Field of divots that grows gradually denser farther from the light source.
+module DivotField(size, width, length, yspacing, xspacing) {
+  divotDensityRange = 6;
+  rows = length / yspacing;
+  for (i = [ 0 : rows ]) {
+    spacing = xspacing / (1 + divotDensityRange * i / rows);
+    translate([even(i) ? spacing / 2 : 0, i * yspacing, 0])
+      DivotRow(size, width, spacing);
+  }
+}
+
 // Draws a basic hair with pillars and LED hole.
 module SimpleHair() {
+  divotSize = 0.2;
   difference() {
     DivingBoard();
     Led();
+    translate([0, 0, HAIR_DEPTH - divotSize + FUDGE])
+      DivotField(divotSize, HAIR_WIDTH, HAIR_LENGTH,
+                 yspacing = 1, xspacing = 5);
   }
   Pillars();
 }
@@ -139,4 +175,4 @@ module TuftyHair() {
   }
 }
 
-TuftyHair();
+SimpleHair();
